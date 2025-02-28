@@ -31,7 +31,7 @@ io.on("connection", (socket) => {
     const { roomName, creator } = data;
     if (!rooms.includes(roomName)) {
       rooms.push(roomName);
-      roomUsers.set(roomName, new Set()); // Initialize empty user set for room
+      roomUsers.set(roomName, new Map()); // Initialize with a new Map for each room
       io.emit("rooms_list", rooms);
       socket.emit("room_created", roomName);
     } else {
@@ -51,10 +51,12 @@ io.on("connection", (socket) => {
     socket.userImage = userImage;
     socket.currentRoom = roomName;
 
-    // Add user to room's user list with their image
+    // Initialize room's user Map if it doesn't exist
     if (!roomUsers.has(roomName)) {
       roomUsers.set(roomName, new Map());
     }
+    
+    // Add user to room's user Map
     roomUsers.get(roomName).set(username, { userImage });
 
     // Send updated users list to all clients in the room
