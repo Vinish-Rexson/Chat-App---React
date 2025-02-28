@@ -115,8 +115,8 @@ function Chat() {
               key={index}
               className={`message ${msg.username === user.name ? 'sent' : 'received'}`}
             >
-              <div className="message-content">
-                <span className="message-user">{msg.username}</span>
+              <div className="message-user">{msg.username}</div>
+              <div className="message-bubble">
                 <p>{msg.message}</p>
                 <span className="message-time">{msg.time}</span>
               </div>

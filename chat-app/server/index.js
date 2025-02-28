@@ -78,12 +78,15 @@ io.on("connection", (socket) => {
   // Handle sending messages
   socket.on("send_message", (data) => {
     console.log("Message received on server:", data);
-    io.to(data.room).emit("receive_message", {
+    const messageData = {
       room: data.room,
       username: data.username,
       message: data.message,
-      time: data.time
-    });
+      time: new Date().toLocaleTimeString(),
+      userId: socket.id // Add this to help identify the sender
+    };
+    
+    io.to(data.room).emit("receive_message", messageData);
   });
 
   // Helper function to handle leaving room
