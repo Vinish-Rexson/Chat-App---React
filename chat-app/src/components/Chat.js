@@ -22,16 +22,19 @@ function Chat() {
   const [systemMessage, setSystemMessage] = useState(null);
   const messagesEndRef = useRef(null);
 
+  // Get user from localStorage
+  const user = JSON.parse(localStorage.getItem('user'));
+
   useEffect(() => {
-    if (!state?.username || !state?.roomName) {
-      navigate('/rooms');
+    if (!user || !state?.roomName) {
+      navigate('/');
       return;
     }
 
-    // Join room
     socket.emit("join_room", {
       roomName: state.roomName,
-      username: state.username
+      username: user.name,
+      userImage: user.picture
     });
 
     // Listen for messages
@@ -54,12 +57,12 @@ function Chat() {
       // Cleanup: leave room and remove listeners
       socket.emit("leave_room", {
         roomName: state.roomName,
-        username: state.username
+        username: user.name
       });
       socket.off("receive_message");
       socket.off("users_in_room");
     };
-  }, [state, navigate]);
+  }, [state, navigate, user]);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -72,7 +75,7 @@ function Chat() {
     if (message.trim()) {
       const messageData = {
         room: state.roomName,
-        username: state.username,
+        username: user.name,
         message: message.trim(),
         time: new Date().toLocaleTimeString()
       };
@@ -84,7 +87,7 @@ function Chat() {
   };
 
   const handleBack = () => {
-    navigate('/rooms', { state: { username: state.username } });
+    navigate('/rooms', { state: { username: user.name } });
   };
 
   return (
@@ -96,6 +99,10 @@ function Chat() {
             ← Back to Rooms
           </button>
           <h2 className="room-title">Room: {state?.roomName}</h2>
+          <div className="user-info">
+            <img src={user?.picture} alt="" className="user-avatar" />
+            <span className="user-name">{user?.name}</span>
+          </div>
           <div className="online-users">
             <span>Online</span>
             <span className="online-count">{onlineUsers.length}</span>
@@ -106,7 +113,7 @@ function Chat() {
           {messages.map((msg, index) => (
             <div
               key={index}
-              className={`message ${msg.username === state.username ? 'sent' : 'received'}`}
+              className={`message ${msg.username === user.name ? 'sent' : 'received'}`}
             >
               <div className="message-content">
                 <span className="message-user">{msg.username}</span>

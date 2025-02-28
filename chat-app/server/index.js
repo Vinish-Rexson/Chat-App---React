@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
   });
 
   // Handle joining room
-  socket.on("join_room", ({ roomName, username }) => {
+  socket.on("join_room", ({ roomName, username, userImage }) => {
     // Leave previous room if any
     if (socket.currentRoom) {
       handleLeaveRoom(socket, socket.currentRoom, socket.username);
@@ -48,19 +48,24 @@ io.on("connection", (socket) => {
 
     socket.join(roomName);
     socket.username = username;
+    socket.userImage = userImage;
     socket.currentRoom = roomName;
 
-    // Add user to room's user list
+    // Add user to room's user list with their image
     if (!roomUsers.has(roomName)) {
-      roomUsers.set(roomName, new Set());
+      roomUsers.set(roomName, new Map());
     }
-    roomUsers.get(roomName).add(username);
+    roomUsers.get(roomName).set(username, { userImage });
 
     // Send updated users list to all clients in the room
-    const usersInRoom = Array.from(roomUsers.get(roomName));
+    const usersInRoom = Array.from(roomUsers.get(roomName)).map(([name, data]) => ({
+      name,
+      image: data.userImage
+    }));
+    
     io.to(roomName).emit("users_in_room", usersInRoom);
 
-    // Notify room of new user (only once)
+    // Notify room of new user
     io.to(roomName).emit("receive_message", {
       username: "System",
       message: `${username} has joined the room`,
